@@ -57,7 +57,7 @@
 
 //ROB
 `define ROB_SZ_LOG 4
-`define ROB_SZ_LOG 32
+`define ROB_SZ 32
 
 //Reg
 `define REG_SZ_LOG 4
@@ -66,3 +66,7 @@
 //RS
 `define RS_SZ 32
 `define RS_SZ_LOG 4
+
+//LSB
+`define LSB_SZ 32
+`define LSB_SZ_LOG 4

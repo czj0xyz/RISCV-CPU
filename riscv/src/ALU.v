@@ -11,6 +11,7 @@ module ALU(
     
     output wire res_flg,
     output reg[31:0] res,
+    output reg[31:0] res2,
     output wire[`ROB_SZ_LOG:0] rd_to
 );
     assign res_flg = run_flg;
@@ -38,18 +39,39 @@ module ALU(
                 `SLLI : res = Vj << imm;
                 `SRLI : res = Vj >> imm;
                 `SRAI : res = $signed(Vj) >> imm;
-                `AUIPC: res = imm + pc - 4;
+                `AUIPC: res = imm + pc;
                 `LUI  : res = imm;
 
-                `BEQ : res = Vj == Vk;
-                `BNE : res = Vj != Vk;
-                `BLT : res = $signed(Vj) < $signed(Vk);
-                `BGE : res = $signed(Vj) >= $signed(Vk);
-                `BLTU: res = Vj < Vk;
-                `BGEU: res = Vj >= Vk;
+                `BEQ : begin
+                    res2 = Vj == Vk;
+                    res = imm + pc;
+                end
+                `BNE : begin
+                    res2 = Vj != Vk;
+                    res = imm + pc;
+                end
+                `BLT : begin
+                    res2 = $signed(Vj) < $signed(Vk);
+                    res = imm + pc;
+                end
+                `BGE : begin
+                    res2 = $signed(Vj) >= $signed(Vk);
+                    res = imm + pc;
+                end
+                `BLTU: begin
+                    res2 = Vj < Vk;
+                    res = imm + pc;
+                end
+                `BGEU: begin
+                    res2 = Vj >= Vk;
+                    res = imm + pc;
+                end
 
-                `JAL : res = pc;
-                `JALR: res = (Vj + imm)&(~(32'h00000001)); 
+                `JAL : res = pc + 4;
+                `JALR: begin 
+                    res2 = (Vj + imm)&(~(32'h00000001)); 
+                    res = pc + 4;
+                end
             endcase
         end
     end

@@ -5,16 +5,19 @@ module Reg(
     input  wire                 rdy,			// ready signal, pause cpu when low
     
     //add
-    input  wire                 run_add,
-    input  wire [4:0]           rs1,
-    input  wire [4:0]           rs2,
-    input  wire [4:0]           rd,
+    input  wire                  run_add,
+    input  wire                  rs1_hv,
+    input  wire [4:0]            rs1,
+    input  wire                  rs2_hv,
+    input  wire [4:0]            rs2,
+    input  wire                  rd_hv,
+    input  wire [4:0]            rd,
     input  wire [`ROB_SZ_LOG:0]  tail,
 
     //update
-    input  wire                 run_upd,
+    input  wire                  run_upd,
     input  wire [`REG_SZ_LOG:0]  commit_rd,
-    input  wire [31:0]          res,
+    input  wire [31:0]           res,
     input  wire [`ROB_SZ_LOG:0]  head,
     
     //branch
@@ -24,32 +27,44 @@ module Reg(
     output reg                  Vj,
     output reg                  Qj,
     output reg                  Vk,
-    output reg                  Qk,
+    output reg                  Qk
 );
-    reg Busy[`REG_SZ-1];
-    reg[`ROB_SZ_LOG:0] Reordered[`REG_SZ-1];
-    reg[31:0] data[`REG_SZ-1];
+    reg Busy[`REG_SZ-1:0];
+    reg[`ROB_SZ_LOG:0] Reordered[`REG_SZ-1:0];
+    reg[31:0] data[`REG_SZ-1:0];
     integer i;
     
     always @(*)begin
         if(run_add)begin
-            if(Busy[rs1])begin
-                Qj = Reordered[rs1];
+            if(rs1_hv)begin
+                if(Busy[rs1])begin
+                    Qj = Reordered[rs1];
+                end else begin
+                    Vj = data[rs1];
+                    Qj = 0;
+                end
             end else begin
-                Vj = data[rs1];
+                Vj = 0;
                 Qj = 0;
             end
-
-            if(Busy[rs2])begin
-                Qk = Reordered[rs2];
+            
+            if(rs2_hv)begin
+                if(Busy[rs2])begin
+                    Qk = Reordered[rs2];
+                end else begin
+                    Vk = data[rs2];
+                    Qk = 0;
+                end
             end else begin
-                Vk = data[rs2];
+                Vk = 0;
                 Qk = 0;
             end
-            
-            Busy[rd] = 1;
-            Reordered[rd] = tail;
-        end
+        end else begin
+            Vj = 0;
+            Qj = 0;
+            Vk = 0;
+            Qk = 0;
+        end 
     end
 
     always @(posedge clk)begin
@@ -62,15 +77,24 @@ module Reg(
         end
         else if(~rdy);
         else if(reset)begin
-            for( i=0;i<`REG_SZ;i++)begin
+            for( i=0;i<`REG_SZ;i = i + 1)begin
                 Busy[i] <= 0;
                 Reordered[i] <= 0;
             end
         end else begin
-            if(run_upd && Reordered[commit_rd] == head)begin
-                Busy[commit_rd] <= 0;
-                Reordered[commit_rd] <= 0;
-                data[commit_rd] <= res;
+            if(run_add && run_upd && commit_rd == rd)begin
+                //data X
+                Reordered[rd] = tail;
+            end else begin
+                if(run_upd && Reordered[commit_rd] == head)begin
+                    Busy[commit_rd] <= 0;
+                    Reordered[commit_rd] <= 0;
+                    if(commit_rd != 0)data[commit_rd] <= res;
+                end
+                if(run_add && rd_hv) begin
+                    Busy[commit_rd] <= 1;
+                    Reordered[rd] <= tail;
+                end
             end
         end
     end
