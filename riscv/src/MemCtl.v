@@ -17,7 +17,7 @@ module MemCtl(
 
     //from inst
     input  wire                  inst_in_flg,
-    input  wire[31:0]            inst_addr,
+    input  wire[31:0]            inst_addr, 
 
     //from mem
     input  wire [ 7:0]          mem_din_,		// data input bus
