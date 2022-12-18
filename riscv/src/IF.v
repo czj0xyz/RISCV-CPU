@@ -2,6 +2,9 @@
 // port modification allowed for debugging purposes
 `include "def.v"
 
+`ifndef IFMod
+`define IFMod
+
 module IF(
     input  wire                 clk,			// system clock signal
     input  wire                 rst,			// reset signal
@@ -16,7 +19,7 @@ module IF(
 
     //jal
     input  wire                 jal_reset,
-    input  wire                 jal_pc,
+    input  wire[31:0]           jal_pc,
 
     //for mem
     output  reg                 nd_ins,
@@ -73,3 +76,5 @@ module IF(
     end
 
 endmodule
+
+`endif

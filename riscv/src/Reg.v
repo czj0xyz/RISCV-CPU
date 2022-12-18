@@ -1,4 +1,8 @@
 `include "def.v"
+
+`ifndef RegMod
+`define RegMod
+
 module Reg(
     input  wire                 clk,			// system clock signal
     input  wire                 rst,			// reset signal
@@ -24,10 +28,10 @@ module Reg(
     input  wire                 reset,
     
     //out id
-    output reg                  Vj,
-    output reg                  Qj,
-    output reg                  Vk,
-    output reg                  Qk
+    output reg[31:0]                  Vj,
+    output reg[`ROB_SZ_LOG:0]         Qj,
+    output reg[31:0]                  Vk,
+    output reg[`ROB_SZ_LOG:0]         Qk
 );
     reg Busy[`REG_SZ-1:0];
     reg[`ROB_SZ_LOG:0] Reordered[`REG_SZ-1:0];
@@ -99,3 +103,4 @@ module Reg(
         end
     end
 endmodule
+`endif

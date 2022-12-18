@@ -1,6 +1,9 @@
 //start from 1
 `include "def.v"
 
+`ifndef ROBMod
+`define ROBMod
+
 module ROB(
     input  wire                  clk,			// system clock signal
     input  wire                  rst,			// reset signal
@@ -134,3 +137,5 @@ module ROB(
 
 
 endmodule
+
+`endif

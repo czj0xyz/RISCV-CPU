@@ -1,5 +1,8 @@
 `include "def.v"
 
+`ifndef ALUMod
+`define ALUMod
+
 module ALU(
     input wire       run_flg,
     input wire[`ROB_SZ_LOG:0]  rd_fr,
@@ -76,3 +79,5 @@ module ALU(
         end
     end
 endmodule
+
+`endif

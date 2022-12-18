@@ -1,4 +1,8 @@
 `include "def.v"
+
+`ifndef RSMod
+`define RSMod
+
 module RS(
     input  wire                 clk,			// system clock signal
     input  wire                 rst,			// reset signal
@@ -35,7 +39,7 @@ module RS(
     output reg[31:0]             ret_Vk,
     output reg[31:0]             ret_imm,
     output reg[31:0]             ret_pc,
-    output reg[31:0]             ret_opcode,
+    output reg[3:0]              ret_opcode,
     output reg[`ROB_SZ_LOG:0]    ret_dest
 
 );
@@ -147,3 +151,5 @@ module RS(
     end
 
 endmodule
+
+`endif

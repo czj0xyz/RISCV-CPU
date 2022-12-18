@@ -1,5 +1,8 @@
 `include "def.v"
 
+`ifndef LSBMod
+`define LSBMod
+
 module LSB(
     input  wire                 clk,			// system clock signal
     input  wire                 rst,			// reset signal
@@ -12,6 +15,7 @@ module LSB(
     input  wire [31:0]           in_Vk,
     input  wire [`ROB_SZ_LOG:0]  in_Qk, 
     input  wire [3:0]            in_opcode, 
+    input  wire [3:0]            in_type, 
     input  wire [`ROB_SZ_LOG:0]  in_Dest, 
     input  wire [31:0]           in_imm,
 
@@ -38,7 +42,8 @@ module LSB(
     //output
     output wire                 ret_full,
     output reg                  ret_lad_flg,
-    output reg                  ret_lad_res,
+    output reg[31:0]            ret_lad_res,
+    output reg[`ROB_SZ_LOG:0]   ret_dest,
     output reg                  ret_str_done,
     
     output reg                  mem_nd,
@@ -56,7 +61,6 @@ module LSB(
     assign ret_full = (tail==`ROB_SZ-1&&head==1) || (tail+1 == head);
 
     wire ty = (opcode[head] == `SB) || (opcode[head] == `SH) || (opcode[head] == `SW);
-
     reg[5:0] len;
 
     always @(*)begin
@@ -96,6 +100,7 @@ module LSB(
                         head <= head+1;
                     end else begin
                         ret_str_done <= 1;
+                        ret_dest <= Dest[head];
                         mem_out <= 0;
                     end
 
@@ -104,6 +109,7 @@ module LSB(
                     mem_out <= 0;
                     if(mem_flg)begin
                         ret_lad_flg <= 1;
+                        ret_dest <= Dest[head];
                         if(opcode[head] == `LB)
                             ret_lad_res <= {{16{mem_res[7]}},mem_res[7:0]};
                         else if(opcode[head] == `LH)
@@ -147,7 +153,7 @@ module LSB(
                 end
             end
 
-            if(run_add)begin
+            if(run_add && (in_type == `LAD || in_type == `STR))begin
                 if(run_upd_lad && lad_rd == in_Qj) begin
                     Qj[tail] <= 0;
                     Vj[tail] <= lad_res;
@@ -179,3 +185,5 @@ module LSB(
         end
     end
 endmodule
+
+`endif

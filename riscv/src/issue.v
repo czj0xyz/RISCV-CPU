@@ -2,6 +2,9 @@
 // port modification allowed for debugging purposes
 `include "def.v"
 
+`ifndef issueMod
+`define issueMod
+
 module issue(
 
     input  wire                 ins_flg,
@@ -18,8 +21,8 @@ module issue(
     output reg[4:0]              rd,
     output reg[31:0]             imm,
     output reg[31:0]             ret_pc,
-    output reg[4:0]              opcode,
-    output reg[4:0]              optype
+    output reg[3:0]              opcode,
+    output reg[3:0]              optype
     
 );
     assign ret_add = ins_flg;
@@ -101,3 +104,5 @@ module issue(
     end
 
 endmodule
+
+`endif
