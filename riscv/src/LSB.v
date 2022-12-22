@@ -54,41 +54,51 @@ module LSB(
 );
     reg[`ROB_SZ_LOG:0] Qj[`LSB_SZ-1:0],Qk[`LSB_SZ-1:0],Dest[`LSB_SZ-1:0];
     reg[31:0]          Vj[`LSB_SZ-1:0],Vk[`LSB_SZ-1:0],imm[`LSB_SZ-1:0];
-    reg[3:0]           opcode[`LSB_SZ-1:0];
+    reg[3:0]           opcode[`LSB_SZ-1:0],optype[`LSB_SZ-1:0];
     reg                Busy[`LSB_SZ-1:0];
     reg[`LSB_SZ-1:0] tail = 1,head = 1;
     integer i;
     assign ret_full = (tail==`ROB_SZ-1&&head==1) || (tail+1 == head);
 
-    wire ty = (opcode[head] == `SB) || (opcode[head] == `SH) || (opcode[head] == `SW);
     reg[5:0] len;
 
     always @(*)begin
         len = 0;
-        case(opcode[head])
-            `LB: len = 8;
-            `LH: len = 16;
-            `LW: len = 32;
-            `LBU: len = 8;
-            `LHU: len = 16;
-            `SB: len = 8;
-            `SH: len = 16;
-            `SW: len = 32;
-        endcase
+        if(optype[head] == `LAD)
+            case(opcode[head])
+                `LB: len = 8;
+                `LH: len = 16;
+                `LW: len = 32;
+                `LBU: len = 8;
+                `LHU: len = 16;
+            endcase
+        
+        if(optype[head] == `STR)
+            case(opcode[head])
+                `SB: len = 8;
+                `SH: len = 16;
+                `SW: len = 32;
+            endcase
     end
 
     always @(posedge clk)begin
         if(rst)begin
-            head <= 0;
-            tail <= 0;
+            head <= 1;
+            tail <= 1;
+            mem_nd <= 0;
+            mem_out <= 0;
+            ret_lad_flg <= 0;
         end else if(~rdy);
         else if(reset)begin
-            head <= 0;
-            tail <= 0;
+            head <= 1;
+            tail <= 1;
+            mem_nd <= 0;
+            mem_out <= 0;
+            ret_lad_flg <= 0;
         end else begin
             //calc
             if(head != tail && !Qj[head] && !Qk[head])begin//calc
-                if(ty)begin//store
+                if(optype[head] == `STR)begin//store
                     ret_lad_flg <= 0;
                     mem_nd <= 0;
                     if(str_modi)begin
@@ -97,7 +107,8 @@ module LSB(
                         mem_st <= Vj[head] + imm[head];
                         mem_len <= len;
                         mem_x <= Vk[head];
-                        head <= head+1;
+                        if(head == `LSB_SZ-1) head <=1;
+                        else head <= head+1;
                     end else begin
                         ret_str_done <= 1;
                         ret_dest <= Dest[head];
@@ -116,7 +127,8 @@ module LSB(
                             ret_lad_res <= {{16{mem_res[15]}},mem_res[15:0]};
                         else ret_lad_res <= mem_res;
                         mem_nd <= 0;
-                        head <= head +1;
+                        if(head == `LSB_SZ-1) head <=1;
+                        else head <= head+1;
                     end else begin
                         mem_nd <= 1;
                         mem_len <= len;
@@ -179,8 +191,10 @@ module LSB(
                 Dest[tail] <= in_Dest;
                 imm[tail] <= in_imm;
                 opcode[tail] <= in_opcode;
+                optype[tail] <= in_type;
 
-                tail <= tail+1;
+                if(tail == `LSB_SZ-1)tail <= 1;
+                else tail <= tail+1;
             end
         end
     end

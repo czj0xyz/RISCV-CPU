@@ -11,6 +11,7 @@ module ALU(
     input wire[31:0]  imm,
     input wire[31:0]  pc,
     input wire[3:0]   opcode,
+    input wire[3:0]   optype,
     
     output wire res_flg,
     output reg[31:0] res,
@@ -21,6 +22,7 @@ module ALU(
     assign rd_to = rd_fr;
     always @(*)begin
         if(run_flg)begin
+            if(optype == `CAL)
             case(opcode)
                 `ADD : res = Vj + Vk;
                 `SUB : res = Vj - Vk;
@@ -32,7 +34,10 @@ module ALU(
                 `SRA : res = $signed(Vj) >> (Vk[4:0]);
                 `OR  : res = Vj | Vk;
                 `AND : res = Vj & Vk;
-
+            endcase
+            
+            if(optype == `CALi)
+            case(opcode)
                 `ADDI : res = Vj + imm;
                 `SLTI : res = $signed(Vj) < $signed(imm);
                 `SLTIU: res = Vj < imm;
@@ -44,7 +49,10 @@ module ALU(
                 `SRAI : res = $signed(Vj) >> imm;
                 `AUIPC: res = imm + pc;
                 `LUI  : res = imm;
+            endcase
 
+            if(optype == `BRA)
+            case(opcode)
                 `BEQ : begin
                     res2 = Vj == Vk;
                     res = imm + pc;
@@ -69,13 +77,17 @@ module ALU(
                     res2 = Vj >= Vk;
                     res = imm + pc;
                 end
+            endcase
 
+            if(optype == `JUM)
+            case(opcode)
                 `JAL : res = pc + 4;
                 `JALR: begin 
                     res2 = (Vj + imm)&(~(32'h00000001)); 
                     res = pc + 4;
                 end
             endcase
+            
         end
     end
 endmodule

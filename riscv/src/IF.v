@@ -57,7 +57,7 @@ module IF(
         end
         else if(~rdy);
         else if(jal_reset)begin
-            pc <= pc_fetch;
+            pc <= jal_pc;
             hv_ins <= 0;
             ins <= 0;
             ins_flg <= `LOW;
@@ -67,7 +67,6 @@ module IF(
             ins_flg <= `HIGH;
             hv_ins <= 0;
             ret_ins <= ins;
-            // $display(ins);
             
             if(ins[6:0] == 7'b1101111)
                 pc <= pc+{{11{ins[31]}},ins[31],ins[19:12],ins[20],ins[30:21],1'b0};

@@ -76,7 +76,7 @@ module cpu(
 	wire RS_ALU_run_flg;
 	wire[`ROB_SZ_LOG:0] RS_ALU_rd;
 	wire[31:0] RS_ALU_Vj,RS_ALU_Vk,RS_ALU_imm,RS_ALU_pc;
-	wire[3:0] RS_ALU_opcode;
+	wire[3:0] RS_ALU_opcode,RS_ALU_optype;
 
 	wire ALU_res_flg;
 	wire[31:0] ALU_res,ALU_res2;
@@ -119,6 +119,7 @@ module cpu(
 		.imm(RS_ALU_imm),
 		.pc(RS_ALU_pc),
 		.opcode(RS_ALU_opcode),
+		.optype(RS_ALU_optype),
     
 		.res_flg(ALU_res_flg),
 		.res(ALU_res),
@@ -152,7 +153,7 @@ module cpu(
 		.ins(IF_issue_inst),
 		.pc(IF_issue_pc),
 
-		.ret_add(issue_RS_add_flg),
+		.ret_add(issue_add_flg),
 		.rs1_hv(issue_RS_rs1_hv),
 		.rs2_hv(issue_RS_rs2_hv),
 		.rd_hv(issue_RS_rd_hv),
@@ -204,6 +205,7 @@ module cpu(
     	.in_Vk(Reg_RS_Vk),
     	.in_Qk(Reg_RS_Qk), 
     	.in_opcode(issue_opcode), 
+    	.in_optype(issue_optype), 
     	.in_Dest(ROB_tail), 
     	.in_pc(issue_pc),
     	.in_imm(issue_imm),
@@ -225,6 +227,7 @@ module cpu(
     	.ret_imm(RS_ALU_imm),
     	.ret_pc(RS_ALU_pc),
     	.ret_opcode(RS_ALU_opcode),
+    	.ret_optype(RS_ALU_optype),
     	.ret_dest(RS_ALU_rd)
 	);
 

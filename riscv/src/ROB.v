@@ -54,21 +54,27 @@ module ROB(
     reg[`ROB_SZ_LOG:0] tail=1,head=1;
 
     assign ret_full = (tail==`ROB_SZ-1&&head==1) || (tail+1 == head);
-
+    wire pop_flg = head != tail && Ready[head]!=0 && !(opcode[head]==`JALR && Ready[head] == 1);
     always @(posedge clk)begin
         if(rst) begin
             tail <= 1;
             head <= 1;
+            ret_reg_flg <= 0;
+            ret_str_flg <= 0;
+            ret_jal_reset <=0;
         end else if(~rdy);
         else if(reset)begin
             tail <= 1;
             head <= 1;
+            ret_reg_flg <= 0;
+            ret_str_flg <= 0;
+            ret_jal_reset <=0;
         end else begin
             ret_head <= head;
             ret_tail <= tail;
             
             if(head != tail && Ready[head] != 0)begin//commit
-                if(opcode[head] == `JALR)begin
+                if(optype[head]==`JUM && opcode[head] == `JALR)begin
                     ret_str_flg <= 0;
                     if(Ready[head] == 1)begin
                         ret_reg_flg <= 1;
@@ -80,7 +86,6 @@ module ROB(
                         ret_reg_flg <= 0;
                         ret_jal_reset <= 1;
                         ret_jal_pc <= Value[head];
-                        head <= head+1;
                     end
                 end else if(optype[head] == `BRA)begin
                     ret_str_flg <= 0;
@@ -89,19 +94,20 @@ module ROB(
                         ret_jal_reset <= 1;
                         ret_jal_pc <=Value[head];
                     end else ret_jal_reset <= 0;
-                    head <= head +1;
                 end else if(optype[head] ==`STR)begin
                     ret_str_flg <= 1;
                     ret_reg_flg <= 0;
                     ret_jal_reset <= 0;
-                    head <= head +1;
                 end else begin
                     ret_str_flg <= 0;
                     ret_jal_reset <= 0;
                     ret_reg_flg <= 1;
                     ret_reg_rd <= Dest[head];
                     ret_reg_res <= Value[head];
-                    head <= head + 1;
+                end
+                if(pop_flg)begin
+                    if(head == `ROB_SZ-1) head <= 1;
+                    else head <= head+1;
                 end
             end
 
@@ -111,7 +117,8 @@ module ROB(
                 opcode[tail] <= in_opcode;
                 optype[tail] <= in_optype;
                 Ready[tail] <= 0;
-                tail <= tail+1;
+                if(tail == `ROB_SZ-1)tail <= 1;
+                else tail <= tail+1;
             end
 
             if(run_upd_alu)begin

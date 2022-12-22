@@ -15,6 +15,7 @@ module RS(
     input  wire [31:0]           in_Vk,
     input  wire [`ROB_SZ_LOG:0]  in_Qk, 
     input  wire [3:0]            in_opcode, 
+    input  wire [3:0]            in_optype, 
     input  wire [`ROB_SZ_LOG:0]  in_Dest, 
     input  wire [31:0]           in_pc,
     input  wire [31:0]           in_imm,
@@ -40,13 +41,14 @@ module RS(
     output reg[31:0]             ret_imm,
     output reg[31:0]             ret_pc,
     output reg[3:0]              ret_opcode,
+    output reg[3:0]              ret_optype,
     output reg[`ROB_SZ_LOG:0]    ret_dest
 
 );
     reg[`ROB_SZ_LOG:0] Qj[`RS_SZ-1:0],Qk[`RS_SZ-1:0];
     reg[31:0]          Vj[`RS_SZ-1:0],Vk[`RS_SZ-1:0],imm[`RS_SZ-1:0];
     reg[`ROB_SZ_LOG:0] Dest[`RS_SZ-1:0];
-    reg[3:0]           opcode[`RS_SZ-1:0];
+    reg[3:0]           opcode[`RS_SZ-1:0],optype[`RS_SZ-1:0];
     reg                Busy[`RS_SZ-1:0];
     reg[31:0]          pc[`RS_SZ-1:0];
 
@@ -79,6 +81,7 @@ module RS(
             for(i = 0; i < `RS_SZ; i++)begin
                 Busy[i] <= 0;
             end
+            ret_cal_flg <= 0;
         end else begin
             if(cal_flg) begin
                 ret_cal_flg <= `HIGH;
@@ -87,6 +90,7 @@ module RS(
                 ret_imm <= imm[cal_pl];
                 ret_pc <= pc[cal_pl];
                 ret_opcode <= opcode[cal_pl];
+                ret_optype <= optype[cal_pl];
                 ret_dest <= Dest[cal_pl];
                 Busy[cal_pl] <= 0;
             end else ret_cal_flg <= `LOW;
@@ -95,6 +99,7 @@ module RS(
                 Busy[ins_pl] <= 1;
                 Dest[ins_pl] <= in_Dest;
                 opcode[ins_pl] <= in_opcode;
+                optype[ins_pl] <= in_optype;
                 pc[ins_pl] <= in_pc;
                 imm[ins_pl] <= in_imm;
 
