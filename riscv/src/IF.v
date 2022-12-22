@@ -60,11 +60,14 @@ module IF(
             pc <= pc_fetch;
             hv_ins <= 0;
             ins <= 0;
-        end else if(stall || ~hv_ins);
-        else begin
+            ins_flg <= `LOW;
+        end else if(stall || ~hv_ins)begin
+            ins_flg <= `LOW;
+        end else begin
             ins_flg <= `HIGH;
             hv_ins <= 0;
             ret_ins <= ins;
+            // $display(ins);
             
             if(ins[6:0] == 7'b1101111)
                 pc <= pc+{{11{ins[31]}},ins[31],ins[19:12],ins[20],ins[30:21],1'b0};

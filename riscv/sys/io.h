@@ -1,7 +1,7 @@
 #ifndef CPU_JUDGE_TEST_IO_H
 #define CPU_JUDGE_TEST_IO_H
 
-// #define SIM                         // whether in simulation
+#define SIM                         // whether in simulation
 
 #define BYTE_PORT_IN 0x30000        // port for reading bytes from input
 #define BYTE_PORT_OUT 0x30000       // port for writing bytes to output
@@ -99,7 +99,10 @@ static inline unsigned int clock()
 #else
 static inline void sleep(const unsigned int milli_sec)
 {
-    unsigned int s = 0, d = milli_sec * (CPU_CLK_FREQ / 1000);
+    /* bug fix: clock may increase when we load from CPUCLK_PORT_IN */
+    /*          which will introduce unsigned value overflow.       */
+    /* unsigned int s = 0, d = milli_sec * (CPU_CLK_FREQ / 1000);   */
+    int s = 0, d = milli_sec * (CPU_CLK_FREQ / 1000);
     s = clock();
     while (clock() - s < d);
 }
