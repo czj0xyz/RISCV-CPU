@@ -1,6 +1,6 @@
 #!/bin/sh
 set -e
-prefix=$(shell pwd)
+prefix='/opt/riscv'
 rpath=$prefix/bin/
 # clearing test dir
 rm -rf ./test

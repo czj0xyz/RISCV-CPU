@@ -45,6 +45,10 @@ module MemCtl(
     reg[31:0] ans;
     integer i;
 
+    reg valid[`ICACHE_SZ-1:0];
+    reg[21:0] tag[`ICACHE_SZ-1:0];
+    reg[31:0] icache_data[`ICACHE_SZ-1:0];
+
     always @(*)begin
         if(!reset)
         if(lsb_out_flg || lsb_out_len > 0)begin
@@ -80,6 +84,7 @@ module MemCtl(
     always @(posedge clk)begin
         if(rst)begin
             lsb_out_len <= 0;
+            for(i=0;i<`ICACHE_SZ;i++) valid[i] <= 0;
         end else if(~rdy);
         else if(reset)begin
             lsb_out_len <= 0;
@@ -95,10 +100,6 @@ module MemCtl(
                 ret_lsb_in_flg <= 0;
                 ret_inst_in_flg <= 0;
                 if(lsb_out_flg)begin
-                    // $display(lsb_num);
-                    // $display("%h",lsb_addr);
-                    // $display("----------");
-                    // if(lsb_addr == 32'h0001fbb0) $display(lsb_num);
                     lsb_out_addr <= lsb_addr + 1;
                     lsb_out_num <= lsb_num;
                     lsb_out_len <= lsb_len - 8;
@@ -133,19 +134,29 @@ module MemCtl(
                     ret_lsb_in_flg <= 0;
                     lsb_in <= 0;
 
-                    if(!inst_in)begin
-                        get_len <= 0;
-                        ret_inst_in_flg <= 0;
-                        inst_in <= 1;
+                    if(valid[inst_addr[`iIndex]] && tag[inst_addr[`iIndex]] == inst_addr[`iTag])begin//hit
+                        ret_inst_in_flg <= 1;
+                        inst_in <= 0;
+                        ret_res <= icache_data[inst_addr[`iIndex]];
                     end else begin
-                        if(get_len == 3)begin
-                            ret_inst_in_flg <= 1;
-                            inst_in <= 0;
-                            ret_res <= ans;
-                        end else begin
+                        if(!inst_in)begin
+                            get_len <= 0;
                             ret_inst_in_flg <= 0;
-                            data[get_len] <= mem_din_;
-                            get_len <= get_len + 1;
+                            inst_in <= 1;
+                        end else begin
+                            if(get_len == 3)begin
+                                valid[inst_addr[`iIndex]] <= 1;
+                                tag[inst_addr[`iIndex]] <= inst_addr[`iTag];
+                                icache_data[inst_addr[`iIndex]] <= ans;
+                                
+                                ret_inst_in_flg <= 1;
+                                inst_in <= 0;
+                                ret_res <= ans;
+                            end else begin
+                                ret_inst_in_flg <= 0;
+                                data[get_len] <= mem_din_;
+                                get_len <= get_len + 1;
+                            end
                         end
                     end
                 end else begin

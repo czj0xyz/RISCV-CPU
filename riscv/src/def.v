@@ -70,3 +70,8 @@
 //LSB
 `define LSB_SZ 32
 `define LSB_SZ_LOG 4
+
+//Icache
+`define ICACHE_SZ 256
+`define iIndex 9:2
+`define iTag 31:10

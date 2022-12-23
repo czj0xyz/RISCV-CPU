@@ -86,6 +86,10 @@ module cpu(
 	wire[`ROB_SZ_LOG:0] Reg_RS_Qj,Reg_RS_Qk;
 
 	wire STALL = lsb_full | RS_full | ROB_full;
+
+	wire[`ROB_SZ_LOG:0] reg_rob_rs1_id,reg_rob_rs2_id;
+	wire rob_reg_rs1_ready,rob_reg_rs2_ready;
+	wire[31:0] rob_reg_rs1_value,rob_reg_rs2_value;
 	
 	MemCtl memctl(
 		.clk(clk_in),
@@ -182,6 +186,11 @@ module cpu(
 		.rd(issue_rd),
 		.tail(ROB_tail),
 
+		.rob_rs1_ready(rob_reg_rs1_ready),
+		.rob_rs2_ready(rob_reg_rs2_ready),
+		.rob_rs1_value(rob_reg_rs1_value),
+		.rob_rs2_value(rob_reg_rs2_value),
+
 		.run_upd(ROB_com_reg_flg),
 		.commit_rd(ROB_com_reg_rd),
 		.res(ROB_com_reg_res),
@@ -192,7 +201,10 @@ module cpu(
 		.Vj(Reg_RS_Vj),
 		.Qj(Reg_RS_Qj),
 		.Vk(Reg_RS_Vk),
-		.Qk(Reg_RS_Qk)
+		.Qk(Reg_RS_Qk),
+
+		.rs1_id(reg_rob_rs1_id),
+		.rs2_id(reg_rob_rs2_id)
 	);
 
 	RS rs(
@@ -255,6 +267,14 @@ module cpu(
   		.str_rd(lsb_rd),
 
   		.reset(ROB_jal_reset),
+
+		.rs1_id(reg_rob_rs1_id),
+		.rs2_id(reg_rob_rs2_id),
+
+		.rs1_ready(rob_reg_rs1_ready),
+		.rs2_ready(rob_reg_rs2_ready),
+		.rs1_value(rob_reg_rs1_value),
+		.rs2_value(rob_reg_rs2_value),
 
   		.ret_reg_flg(ROB_com_reg_flg),
   		.ret_reg_rd(ROB_com_reg_rd),

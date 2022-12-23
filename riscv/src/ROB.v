@@ -33,6 +33,16 @@ module ROB(
     //jal fail
     input  wire                     reset,
 
+    //reg
+    input  wire[`ROB_SZ_LOG:0]      rs1_id,
+    input  wire[`ROB_SZ_LOG:0]      rs2_id,
+
+    //to reg 
+    output wire                     rs1_ready,
+    output wire                     rs2_ready,
+    output wire[31:0]               rs1_value,
+    output wire[31:0]               rs2_value,
+
     //commit_info
     output reg                     ret_reg_flg,
     output reg[`REG_SZ_LOG:0]      ret_reg_rd,
@@ -52,6 +62,11 @@ module ROB(
     reg[`REG_SZ_LOG:0] Dest[`ROB_SZ-1:0];
     reg[1:0] Ready[`ROB_SZ-1:0];
     reg[`ROB_SZ_LOG:0] tail=1,head=1;
+
+    assign rs1_ready = Ready[rs1_id];
+    assign rs2_ready = Ready[rs2_id];
+    assign rs1_value = Value[rs1_id];
+    assign rs2_value = Value[rs2_id];    
 
     assign ret_full = (tail==`ROB_SZ-1&&head==1) || (tail+1 == head);
     wire pop_flg = head != tail && Ready[head]!=0 && !(optype[head]==`JUM && opcode[head] == `JALR && Ready[head] == 1);
