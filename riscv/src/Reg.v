@@ -36,9 +36,30 @@ module Reg(
     reg Busy[`REG_SZ-1:0];
     reg[`ROB_SZ_LOG:0] Reordered[`REG_SZ-1:0];
     reg[31:0] data[`REG_SZ-1:0];
+    reg[31:0] pre_data[`REG_SZ-1:0];
+
+    reg last_com,flg_out;
+    reg[31:0] debug_ret;
+
     integer i;
-    
+    integer fd;
+    initial begin
+        fd = $fopen("DEBUG.out", "w+"); 
+    end
     always @(*)begin
+        flg_out = 0;
+        for(i=0;i<`REG_SZ;i++)
+            if(pre_data[i] !=  data[i])flg_out = 1;
+        if(flg_out)begin
+            debug_ret = 0;
+            for( i=0;i<`REG_SZ;i++)
+                if(data[i] != 0)
+                    // debug_ret ^=  data[i];
+                    $fwrite(fd,"%d-%h",i,data[i]);
+            // $display("%h",debug_ret);
+            $fdisplay(fd,"");
+        end
+
         if(run_add)begin
             if(rs1_hv)begin
                 if(Busy[rs1])begin
@@ -72,6 +93,7 @@ module Reg(
     end
 
     always @(posedge clk)begin
+        for(i=0;i<`REG_SZ;i++) pre_data[i] = data[i];
         if(rst)begin
             for( i=0;i<`REG_SZ;i++)begin
                 Busy[i] <= 0;
@@ -96,7 +118,7 @@ module Reg(
                     if(commit_rd != 0)data[commit_rd] <= res;
                 end
                 if(run_add && rd_hv) begin
-                    Busy[commit_rd] <= 1;
+                    Busy[rd] <= 1;
                     Reordered[rd] <= tail;
                 end
             end

@@ -18,6 +18,7 @@ module MemCtl(
     //from inst
     input  wire                  inst_in_flg,
     input  wire[31:0]            inst_addr, 
+    input  wire                  reset,
 
     //from mem
     input  wire [ 7:0]          mem_din_,		// data input bus
@@ -39,12 +40,12 @@ module MemCtl(
 
     reg[3:0] get_len;
     reg[7:0] data[3:0];
-    reg[31:0] last_addr;
 
     reg[31:0] ans;
     integer i;
 
     always @(*)begin
+        if(!reset)
         if(lsb_out_flg || lsb_out_len > 0)begin
             mem_wr_ = 1;
             if(lsb_out_flg) mem_a_  = lsb_addr;
@@ -58,11 +59,11 @@ module MemCtl(
         end else begin
             mem_wr_ = 0;
             if(lsb_in_flg)begin
-                if(!lsb_in)mem_a_ <= lsb_addr;
-                else mem_a_ <= lsb_addr + get_len + 1;
+                if(!lsb_in)mem_a_ = lsb_addr;
+                else mem_a_ = lsb_addr + get_len + 1;
             end else if(inst_in_flg)begin
-                if(!inst_in || last_addr!=inst_addr)mem_a_ <= inst_addr;
-                else mem_a_ <= inst_addr + get_len + 1;
+                if(!inst_in)mem_a_ = inst_addr;
+                else mem_a_ = inst_addr + get_len + 1;
             end
         end
 
@@ -76,8 +77,15 @@ module MemCtl(
         if(rst)begin
             lsb_out_len <= 0;
         end else if(~rdy);
-        else begin
+        else if(reset)begin
+            lsb_out_len <= 0;
+            lsb_in <= 0;
+            inst_in <= 0;
+            get_len <= 0;
+        end else begin
             if(lsb_out_flg || lsb_out_len > 0)begin
+                lsb_in <= 0;
+                inst_in <= 0;
                 ret_lsb_in_flg <= 0;
                 ret_inst_in_flg <= 0;
                 if(lsb_out_flg)begin
@@ -112,11 +120,10 @@ module MemCtl(
                     ret_lsb_in_flg <= 0;
                     lsb_in <= 0;
 
-                    if(!inst_in || last_addr!=inst_addr)begin
+                    if(!inst_in)begin
                         get_len <= 0;
                         ret_inst_in_flg <= 0;
                         inst_in <= 1;
-                        last_addr <= inst_addr;
                     end else begin
                         if(get_len == 3)begin
                             ret_inst_in_flg <= 1;

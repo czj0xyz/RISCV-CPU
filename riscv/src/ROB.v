@@ -54,7 +54,8 @@ module ROB(
     reg[`ROB_SZ_LOG:0] tail=1,head=1;
 
     assign ret_full = (tail==`ROB_SZ-1&&head==1) || (tail+1 == head);
-    wire pop_flg = head != tail && Ready[head]!=0 && !(opcode[head]==`JALR && Ready[head] == 1);
+    wire pop_flg = head != tail && Ready[head]!=0 && !(optype[head]==`JUM && opcode[head] == `JALR && Ready[head] == 1);
+
     always @(posedge clk)begin
         if(rst) begin
             tail <= 1;
@@ -72,7 +73,6 @@ module ROB(
         end else begin
             ret_head <= head;
             ret_tail <= tail;
-            
             if(head != tail && Ready[head] != 0)begin//commit
                 if(optype[head]==`JUM && opcode[head] == `JALR)begin
                     ret_str_flg <= 0;
@@ -109,14 +109,18 @@ module ROB(
                     if(head == `ROB_SZ-1) head <= 1;
                     else head <= head+1;
                 end
+            end else begin
+                ret_reg_flg <= 0;
+                ret_str_flg <= 0;
+                ret_jal_reset <= 0;
             end
 
             //update
             if(run_add)begin
-                Dest[tail] <= in_Dest;
                 opcode[tail] <= in_opcode;
                 optype[tail] <= in_optype;
                 Ready[tail] <= 0;
+                Dest[tail] <= in_Dest;
                 if(tail == `ROB_SZ-1)tail <= 1;
                 else tail <= tail+1;
             end
@@ -124,7 +128,7 @@ module ROB(
             if(run_upd_alu)begin
                 Ready[alu_rd] <= 1;
                 Value[alu_rd] <= alu_res;
-                if(optype[alu_rd] == `BRA || optype[alu_rd] == `JUM)
+                if(optype[alu_rd] == `BRA || (optype[alu_rd] == `JUM&&opcode[alu_rd] == `JALR))
                     Dest[alu_rd] <= alu_res2;
             end
 

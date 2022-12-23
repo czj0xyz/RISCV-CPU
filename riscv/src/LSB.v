@@ -136,6 +136,11 @@ module LSB(
                         ret_lad_flg <= 0;
                     end
                 end
+            end else begin
+                ret_lad_flg <= 0;
+                ret_str_done <= 0;
+                mem_nd <= 0;
+                mem_out <= 0;
             end
 
             //update

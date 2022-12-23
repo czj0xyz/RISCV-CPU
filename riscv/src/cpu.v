@@ -100,6 +100,7 @@ module cpu(
 
 		.inst_in_flg(IF_mem_flg),
 		.inst_addr(IF_mem_addr),
+		.reset(ROB_jal_reset),
 
 		.mem_din_(mem_din),
 		.mem_dout_(mem_dout),

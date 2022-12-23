@@ -47,9 +47,10 @@ module issue(
                 7'b0010011: begin
                     rs2_hv = 0;
                     optype = `CALi;
-                    if(ins[14:12] == 3'b001 || ins[14:12] == 3'b101) imm <= ins[24:20];
+                    if(ins[14:12] == 3'b001 || ins[14:12] == 3'b101) imm = ins[24:20];
                     else imm = {{20{ins[31]}},ins[31:20]};
-                    opcode = {ins[30],ins[14:12]};
+                    if(ins[14:12] == 3'b001 || ins[14:12] == 3'b101)opcode = {ins[30],ins[14:12]};
+                    else opcode = {1'b0,ins[14:12]};
                 end
                 7'b0100011: begin
                     rd_hv = 0;
