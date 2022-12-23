@@ -47,7 +47,7 @@ module ROB(
     output reg[`ROB_SZ_LOG:0]      ret_head,  
     output reg[`ROB_SZ_LOG:0]      ret_tail
 );
-    reg[31:0] Value[`ROB_SZ-1:0];
+    reg[31:0] Value[`ROB_SZ-1:0],Value2[`ROB_SZ-1:0];
     reg[3:0] opcode[`ROB_SZ-1:0],optype[`ROB_SZ-1:0];
     reg[`REG_SZ_LOG:0] Dest[`ROB_SZ-1:0];
     reg[1:0] Ready[`ROB_SZ-1:0];
@@ -85,12 +85,12 @@ module ROB(
                     end else begin
                         ret_reg_flg <= 0;
                         ret_jal_reset <= 1;
-                        ret_jal_pc <= Value[head];
+                        ret_jal_pc <= Value2[head];
                     end
                 end else if(optype[head] == `BRA)begin
                     ret_str_flg <= 0;
                     ret_reg_flg <= 0;
-                    if( Dest[head] )begin
+                    if( Value2[head] )begin
                         ret_jal_reset <= 1;
                         ret_jal_pc <=Value[head];
                     end else ret_jal_reset <= 0;
@@ -129,7 +129,7 @@ module ROB(
                 Ready[alu_rd] <= 1;
                 Value[alu_rd] <= alu_res;
                 if(optype[alu_rd] == `BRA || (optype[alu_rd] == `JUM&&opcode[alu_rd] == `JALR))
-                    Dest[alu_rd] <= alu_res2;
+                    Value2[alu_rd] <= alu_res2;
             end
 
             if(run_upd_lad)begin

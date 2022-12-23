@@ -24,7 +24,7 @@ module MemCtl(
     input  wire [ 7:0]          mem_din_,		// data input bus
     output reg [ 7:0]           mem_dout_,		// data output bus
     output reg [31:0]           mem_a_,			// address bus (only 17:0 is used)
-    output reg                  mem_wr_,			// write/read signal (1 for write)
+    output reg                  mem_wr_,		// write/read signal (1 for write)
  
     output reg                  ret_lsb_in_flg,
     output reg                  ret_inst_in_flg,
@@ -40,6 +40,7 @@ module MemCtl(
 
     reg[3:0] get_len;
     reg[7:0] data[3:0];
+    reg[2:0] lsb_hv_wt = 0;
 
     reg[31:0] ans;
     integer i;
@@ -48,14 +49,17 @@ module MemCtl(
         if(!reset)
         if(lsb_out_flg || lsb_out_len > 0)begin
             mem_wr_ = 1;
-            if(lsb_out_flg) mem_a_  = lsb_addr;
-            else mem_a_= lsb_out_addr;
-            case(lsb_len)
-                6'd32: mem_dout_ = lsb_num[31:24];
-                6'd24: mem_dout_ = lsb_num[23:16];
-                6'd16: mem_dout_ = lsb_num[15:8];
-                6'd8:  mem_dout_ = lsb_num[7:0];
-            endcase
+            if(lsb_out_flg)begin
+                mem_a_  = lsb_addr;
+                mem_dout_ = lsb_num[7:0];
+            end else begin
+                mem_a_= lsb_out_addr;
+                case(lsb_hv_wt)
+                    3'd1: mem_dout_ = lsb_num[15:8];
+                    3'd2: mem_dout_ = lsb_num[23:16];
+                    3'd3: mem_dout_ = lsb_num[31:24];
+                endcase
+            end
         end else begin
             mem_wr_ = 0;
             if(lsb_in_flg)begin
@@ -82,6 +86,8 @@ module MemCtl(
             lsb_in <= 0;
             inst_in <= 0;
             get_len <= 0;
+            ret_lsb_in_flg <= 0;
+            ret_inst_in_flg <= 0;
         end else begin
             if(lsb_out_flg || lsb_out_len > 0)begin
                 lsb_in <= 0;
@@ -89,11 +95,18 @@ module MemCtl(
                 ret_lsb_in_flg <= 0;
                 ret_inst_in_flg <= 0;
                 if(lsb_out_flg)begin
-                    lsb_out_addr <= lsb_addr;
+                    // $display(lsb_num);
+                    // $display("%h",lsb_addr);
+                    // $display("----------");
+                    // if(lsb_addr == 32'h0001fbb0) $display(lsb_num);
+                    lsb_out_addr <= lsb_addr + 1;
                     lsb_out_num <= lsb_num;
                     lsb_out_len <= lsb_len - 8;
+                    lsb_hv_wt <= 1;
                 end else begin
                     lsb_out_len <= lsb_out_len - 8;
+                    lsb_out_addr <= lsb_out_addr + 1;
+                    lsb_hv_wt <= lsb_hv_wt + 1;
                 end
             end else begin
                 mem_wr_ <= 0;

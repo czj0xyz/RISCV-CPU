@@ -95,7 +95,7 @@ module RS(
                 Busy[cal_pl] <= 0;
             end else ret_cal_flg <= `LOW;
 
-            if(run_add)begin
+            if(run_add && in_optype != `LAD && in_optype != `STR)begin
                 Busy[ins_pl] <= 1;
                 Dest[ins_pl] <= in_Dest;
                 opcode[ins_pl] <= in_opcode;
