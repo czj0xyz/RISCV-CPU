@@ -87,7 +87,7 @@ module MemCtl(
             for(i=0;i<`ICACHE_SZ;i++) valid[i] <= 0;
         end else if(~rdy);
         else if(reset)begin
-            lsb_out_len <= 0;
+            // lsb_out_len <= 0;
             lsb_in <= 0;
             inst_in <= 0;
             get_len <= 0;

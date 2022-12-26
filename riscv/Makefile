@@ -11,7 +11,7 @@ riscv_toolchain = /opt/riscv
 riscv_bin = $(riscv_toolchain)/bin
 sys = $(prefix)/sys
 
-name = superloop
+name = 102_qsort
 
 # _no_testcase_name_check:
 # 	@$(if $(strip $(name)),, echo 'Missing Testcase Name')
