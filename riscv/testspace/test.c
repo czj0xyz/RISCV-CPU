@@ -1,13 +1,38 @@
 #include "io.h"
-int gcd(int x, int y) {
-  if (x%y == 0) return y;
-  else return gcd(y, x%y);
-}
+//Target: use loops to calculate calculator of 6!
+//@author yixi
+
+int N;
+int h = 99;
+int i = 100;
+int j = 101;
+int k = 102;
+int total = 0;
 
 int main() {
-    outlln(gcd(10,1));
-    outlln(gcd(34986,3087));
-    outlln(gcd(2907,1539));
-
-    return 0;
+  	int a;
+    int b;
+	int c;
+	int d;
+	int e;
+	int f;
+	N=6;
+	for ( a=1; a<=N; a++ )
+	for ( b=1; b<=N; b++ )
+	for ( c=1; c<=N; c++ )	
+	for ( d=1; d<=N; d++ )
+	for ( e=1; e<=N; e++ )
+	for ( f=1; f<=N; f++ )
+		if (a!=b && a!=c && a!=d && a!=e && a!=f && a!=h && a!=i && a!=j && a!=k
+              && b!=c && b!=d && b!=e && b!=f && b!=h && b!=i && b!=j && b!=k
+              && c!=d && c!=e && c!=f && c!=h && c!=i && c!=j && c!=k
+              && d!=e && d!=f && d!=h && d!=i && d!=j && d!=k
+              && e!=f && e!=h && e!=i && e!=j && e!=k
+              && f!=h && f!=i && f!=j && f!=k && i!=j && h!=k)
+		{
+			total++;
+		}
+	
+	outlln(total);
+	return 0;
 }
