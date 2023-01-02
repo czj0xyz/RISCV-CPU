@@ -60,7 +60,7 @@ module RS(
         //find calc & reset
         full = 1;
         cal_flg = 0;
-        for(i = 0;i < `RS_SZ; i++)
+        for(i = 0;i < `RS_SZ; i = i + 1)
             if(Busy[i]==0)begin
                 full = 0;
                 ins_pl = i;
@@ -73,12 +73,12 @@ module RS(
 
     always @(posedge clk)begin
         if(rst)begin
-            for(i = 0; i < `RS_SZ; i++)begin
+            for(i = 0; i < `RS_SZ; i = i + 1)begin
                 Busy[i] <= 0;
             end
         end else if(~rdy);
         else if(reset)begin
-            for(i = 0; i < `RS_SZ; i++)begin
+            for(i = 0; i < `RS_SZ; i = i + 1)begin
                 Busy[i] <= 0;
             end
             ret_cal_flg <= 0;
@@ -127,7 +127,7 @@ module RS(
             end
 
             if(run_upd_alu)begin
-                for(i = 0;i < `RS_SZ;i++)if(Busy[i])begin
+                for(i = 0;i < `RS_SZ;i = i + 1)if(Busy[i])begin
                     if(Qj[i] == alu_rd) begin
                         Qj[i] <= 0;
                         Vj[i] <= alu_res;
@@ -140,7 +140,7 @@ module RS(
             end
 
             if(run_upd_lad)begin
-                for(i = 0;i < `RS_SZ;i++)if(Busy[i])begin
+                for(i = 0;i < `RS_SZ;i = i + 1)if(Busy[i])begin
                     if(Qj[i] == lad_rd) begin
                         Qj[i] <= 0;
                         Vj[i] <= lad_res;

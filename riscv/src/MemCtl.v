@@ -59,9 +59,10 @@ module MemCtl(
             end else begin
                 mem_a_= lsb_out_addr;
                 case(lsb_hv_wt)
-                    3'd1: mem_dout_ = lsb_num[15:8];
-                    3'd2: mem_dout_ = lsb_num[23:16];
-                    3'd3: mem_dout_ = lsb_num[31:24];
+                    3'd1: mem_dout_ = lsb_out_num[15:8];
+                    3'd2: mem_dout_ = lsb_out_num[23:16];
+                    3'd3: mem_dout_ = lsb_out_num[31:24];
+                    default:;
                 endcase
             end
         end else begin
@@ -77,14 +78,17 @@ module MemCtl(
 
 
         data[get_len] = mem_din_;
-        for(i=get_len+1;i<4;i=i+1)data[i] = 8'h00;
+//        for(i=get_len+1;i<4;i = i+1)data[i] = 8'h00;
+        if(get_len <= 0) data[1] = 8'h00;
+        if(get_len <= 1) data[2] = 8'h00;
+        if(get_len <= 2) data[3] = 8'h00;
         ans = {data[3],data[2],data[1],data[0]};
     end
 
     always @(posedge clk)begin
         if(rst)begin
             lsb_out_len <= 0;
-            for(i=0;i<`ICACHE_SZ;i++) valid[i] <= 0;
+            for(i=0;i<`ICACHE_SZ;i = i + 1) valid[i] <= 0;
         end else if(~rdy);
         else if(reset)begin
             // lsb_out_len <= 0;
@@ -110,7 +114,7 @@ module MemCtl(
                     lsb_hv_wt <= lsb_hv_wt + 1;
                 end
             end else begin
-                mem_wr_ <= 0;
+//                mem_wr_ <= 0;
                 if(lsb_in_flg)begin
                     ret_inst_in_flg <= 0;
                     inst_in <= 0;

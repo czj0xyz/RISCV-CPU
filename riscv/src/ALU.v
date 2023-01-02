@@ -34,6 +34,7 @@ module ALU(
                 `SRA : res = $signed(Vj) >> (Vk[4:0]);
                 `OR  : res = Vj | Vk;
                 `AND : res = Vj & Vk;
+                default:;
             endcase
             
             if(optype == `CALi)
@@ -49,6 +50,7 @@ module ALU(
                 `SRAI : res = $signed(Vj) >> imm;
                 `AUIPC: res = imm + pc;
                 `LUI  : res = imm;
+                default:;
             endcase
 
             if(optype == `BRA)
@@ -77,6 +79,7 @@ module ALU(
                     res2 = Vj >= Vk;
                     res = imm + pc;
                 end
+                default:;
             endcase
 
             if(optype == `JUM)
@@ -86,6 +89,7 @@ module ALU(
                     res2 = (Vj + imm)&(~(32'h00000001)); 
                     res = pc + 4;
                 end
+                default:;
             endcase
             
         end

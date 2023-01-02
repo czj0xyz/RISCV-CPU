@@ -33,13 +33,17 @@ module IF(
     
 );
     reg [31:0] pc = 0;
-    reg hv_ins = 0;
+    reg hv_ins = 0, iss_flg = 0;
     reg [31:0] ins = 0;
 
     always @(*)begin
-        if(flg_get) begin
+        if(rst||jal_reset)begin
+            hv_ins = 0;
+        end else if(flg_get) begin
             hv_ins = 1;
             ins = ins_in;
+        end else if(iss_flg)begin
+            hv_ins = 0;
         end
         
         if(hv_ins) begin
@@ -54,18 +58,21 @@ module IF(
     always @(posedge clk) begin
         if(rst)begin
             pc <= 0;
+            iss_flg <= 0;
         end
         else if(~rdy);
         else if(jal_reset)begin
             pc <= jal_pc;
-            hv_ins <= 0;
-            ins <= 0;
+//            hv_ins <= 0;
             ins_flg <= `LOW;
+            iss_flg <= 0;
         end else if(stall || ~hv_ins)begin
             ins_flg <= `LOW;
+            iss_flg <= 0;
         end else begin
             ins_flg <= `HIGH;
-            hv_ins <= 0;
+            iss_flg <= 1;
+            // hv_ins <= 0;
             ret_ins <= ins;
             
             if(ins[6:0] == 7'b1101111)

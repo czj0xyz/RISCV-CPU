@@ -122,7 +122,7 @@ module Reg(
         // end
 
         if(rst)begin
-            for( i=0;i<`REG_SZ;i++)begin
+            for( i=0;i<`REG_SZ;i = i + 1)begin
                 Busy[i] <= 0;
                 Reordered[i] <= 0;
                 data[i] <= 0;

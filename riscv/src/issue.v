@@ -97,6 +97,7 @@ module issue(
                     opcode = `LUI;
                     imm = {ins[31:12],12'h0};
                 end
+                default:;
             endcase
 
             ret_pc = pc;

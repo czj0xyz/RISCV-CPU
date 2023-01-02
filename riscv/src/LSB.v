@@ -71,6 +71,7 @@ module LSB(
                 `LW: len = 32;
                 `LBU: len = 8;
                 `LHU: len = 16;
+                default:;
             endcase
         
         if(optype[head] == `STR)
@@ -78,6 +79,7 @@ module LSB(
                 `SB: len = 8;
                 `SH: len = 16;
                 `SW: len = 32;
+                default:;
             endcase
     end
 
@@ -145,7 +147,8 @@ module LSB(
 
             //update
             if(run_upd_lad)begin
-                for(i=head; i!=tail ;i = i==`ROB_SZ-1?1:i+1)begin
+                // for(i=head; i!=tail ;i = i==`ROB_SZ-1?1:i+1)begin
+                for(i = 0; i < `LSB_SZ ; i = i + 1)begin
                     if(Qj[i] == lad_rd)begin
                         Qj[i] <= 0;
                         Vj[i] <= lad_res;
@@ -158,7 +161,8 @@ module LSB(
             end
 
             if(run_upd_alu)begin
-                for(i=head; i!=tail ;i = i==`ROB_SZ-1?1:i+1)begin
+                // for(i=head; i!=tail ;i = i==`ROB_SZ-1?1:i+1)begin
+                for(i = 0; i < `LSB_SZ ; i = i + 1)begin
                     if(Qj[i] == alu_rd)begin
                         Qj[i] <= 0;
                         Vj[i] <= alu_res;
