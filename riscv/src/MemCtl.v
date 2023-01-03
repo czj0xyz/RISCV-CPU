@@ -7,6 +7,7 @@ module MemCtl(
     input  wire                 clk,			// system clock signal
     input  wire                 rst,			// reset signal
     input  wire                 rdy,			// ready signal, pause cpu when low
+    input  wire                 io_buffer_full,
     
     //from LSB 
     input  wire                  lsb_in_flg,
@@ -28,7 +29,8 @@ module MemCtl(
  
     output reg                  ret_lsb_in_flg,
     output reg                  ret_inst_in_flg,
-    output reg[31:0]            ret_res
+    output reg[31:0]            ret_res,
+    output reg                  ret_str_commit
 
 );//read all 1    write only 1
     reg[5:0]  lsb_out_len = 0;
@@ -49,21 +51,31 @@ module MemCtl(
     reg[21:0] tag[`ICACHE_SZ-1:0];
     reg[31:0] icache_data[`ICACHE_SZ-1:0];
 
+    reg stall_out = 0;//io_buffer_full & (lsb_out_flg ? lsb_addr[17:16] == 2'b11 : lsb_out_addr[17:16] == 2'b11 );
+
     always @(*)begin
+
         if(!reset)
         if(lsb_out_flg || lsb_out_len > 0)begin
-            mem_wr_ = 1;
-            if(lsb_out_flg)begin
-                mem_a_  = lsb_addr;
-                mem_dout_ = lsb_num[7:0];
+            if(stall_out)begin
+                mem_wr_ = 0;
+                mem_a_ = lsb_addr;
+                mem_dout_ = 0;
             end else begin
-                mem_a_= lsb_out_addr;
-                case(lsb_hv_wt)
-                    3'd1: mem_dout_ = lsb_out_num[15:8];
-                    3'd2: mem_dout_ = lsb_out_num[23:16];
-                    3'd3: mem_dout_ = lsb_out_num[31:24];
-                    default:;
-                endcase
+                mem_wr_ = 1;
+                if(lsb_out_flg)begin
+                    mem_a_  = lsb_addr;
+                    mem_dout_ = lsb_num[7:0];
+                end else begin
+                    mem_a_= lsb_out_addr;
+                    case(lsb_hv_wt)
+                        3'd0: mem_dout_ = lsb_out_num[7:0];
+                        3'd1: mem_dout_ = lsb_out_num[15:8];
+                        3'd2: mem_dout_ = lsb_out_num[23:16];
+                        3'd3: mem_dout_ = lsb_out_num[31:24];
+                        default:;
+                    endcase
+                end
             end
         end else begin
             mem_wr_ = 0;
@@ -86,6 +98,7 @@ module MemCtl(
     end
 
     always @(posedge clk)begin
+        stall_out <= ~stall_out;
         if(rst)begin
             lsb_out_len <= 0;
             for(i=0;i<`ICACHE_SZ;i = i + 1) valid[i] <= 0;
@@ -97,6 +110,7 @@ module MemCtl(
             get_len <= 0;
             ret_lsb_in_flg <= 0;
             ret_inst_in_flg <= 0;
+            ret_str_commit <= 0;
         end else begin
             if(lsb_out_flg || lsb_out_len > 0)begin
                 lsb_in <= 0;
@@ -104,16 +118,32 @@ module MemCtl(
                 ret_lsb_in_flg <= 0;
                 ret_inst_in_flg <= 0;
                 if(lsb_out_flg)begin
-                    lsb_out_addr <= lsb_addr + 1;
-                    lsb_out_num <= lsb_num;
-                    lsb_out_len <= lsb_len - 8;
-                    lsb_hv_wt <= 1;
-                end else begin
+                    if(~stall_out)begin
+                        if(lsb_len == 8) ret_str_commit <= 1;
+                        else ret_str_commit <= 0;
+
+                        lsb_out_addr <= lsb_addr + 1;
+                        lsb_out_num <= lsb_num;
+                        lsb_out_len <= lsb_len - 8;
+                        lsb_hv_wt <= 1;
+                    end else begin
+                        ret_str_commit <= 0;
+
+                        lsb_out_addr <= lsb_addr;
+                        lsb_out_num <= lsb_num;
+                        lsb_out_len <= lsb_len;
+                        lsb_hv_wt <= 0;
+                    end
+                end else if(~stall_out)begin
+                    if(lsb_out_len == 8) ret_str_commit <= 1;
+                    else ret_str_commit <= 0;
+
                     lsb_out_len <= lsb_out_len - 8;
                     lsb_out_addr <= lsb_out_addr + 1;
                     lsb_hv_wt <= lsb_hv_wt + 1;
-                end
+                end else ret_str_commit <= 0;
             end else begin
+                ret_str_commit <= 0;
 //                mem_wr_ <= 0;
                 if(lsb_in_flg)begin
                     ret_inst_in_flg <= 0;

@@ -35,6 +35,7 @@ module LSB(
 
     //update ROB
     input  wire                  str_modi,
+    input  wire[`ROB_SZ_LOG:0]  rob_head,
 
     //branch
     input  wire                 reset,
@@ -103,17 +104,22 @@ module LSB(
                 if(optype[head] == `STR)begin//store
                     ret_lad_flg <= 0;
                     mem_nd <= 0;
-                    if(str_modi)begin
-                        ret_str_done <= 0;
-                        mem_out <= 1;
-                        mem_st <= Vj[head] + imm[head];
-                        mem_len <= len;
-                        mem_x <= Vk[head];
-                        if(head == `LSB_SZ-1) head <=1;
-                        else head <= head+1;
+                    if(Dest[head] == rob_head) begin
+                        if(str_modi)begin
+                            ret_str_done <= 0;
+                            mem_out <= 1;
+                            mem_st <= Vj[head] + imm[head];
+                            mem_len <= len;
+                            mem_x <= Vk[head];
+                            if(head == `LSB_SZ-1) head <=1;
+                            else head <= head+1;
+                        end else begin
+                            ret_str_done <= 1;
+                            ret_dest <= Dest[head];
+                            mem_out <= 0;
+                        end
                     end else begin
-                        ret_str_done <= 1;
-                        ret_dest <= Dest[head];
+                        ret_str_done <= 0;
                         mem_out <= 0;
                     end
 

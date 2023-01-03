@@ -1,15 +1,13 @@
 #include "io.h"
-// san check: if your predictor && icache work, it should be 1.5s @ 100Mhz
-unsigned n, sum;
-void work() {
-	for (int i = 1; i <= 5 * n; i++) {
-		sum += i * 998244353;
-	}
+int gcd(int x, int y) {
+  if (x%y == 0) return y;
+  else return gcd(y, x%y);
 }
+
 int main() {
-    n = 50;
-	work();
-	n = 10000000;
-	work();
-	outlln(sum);
+    outlln(gcd(10,1));
+    outlln(gcd(34986,3087));
+    outlln(gcd(2907,1539));
+
+    return 0;
 }

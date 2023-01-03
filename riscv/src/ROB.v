@@ -29,6 +29,7 @@ module ROB(
     //store
     input  wire                     run_upd_str,
     input  wire[`ROB_SZ_LOG:0]      str_rd,
+    input  wire                     mem_commit,
 
     //jal fail
     input  wire                     reset,
@@ -68,8 +69,11 @@ module ROB(
     assign rs1_value = Value[rs1_id];
     assign rs2_value = Value[rs2_id];    
 
+    wire [1:0]tmp1 = Ready[head];
+    wire [3:0]tmp2 = optype[head];
+
     assign ret_full = (tail==`ROB_SZ-1&&head==1) || (tail+1 == head);
-    wire pop_flg = head != tail && Ready[head]!=0 && !(optype[head]==`JUM && opcode[head] == `JALR && Ready[head] == 1);
+    wire pop_flg = head != tail && Ready[head]!=0 && !(optype[head]==`JUM && opcode[head] == `JALR && Ready[head] == 1) && optype[head]!=`STR;
 
     always @(posedge clk)begin
         if(rst) begin
@@ -109,10 +113,13 @@ module ROB(
                         ret_jal_reset <= 1;
                         ret_jal_pc <=Value[head];
                     end else ret_jal_reset <= 0;
-                end else if(optype[head] ==`STR)begin
-                    ret_str_flg <= 1;
+                end else if(optype[head] == `STR)begin
                     ret_reg_flg <= 0;
                     ret_jal_reset <= 0;
+                    if(Ready[head] == 1)begin
+                        ret_str_flg <= 1;
+                        Ready[head] <= 2;
+                    end else ret_str_flg <= 0;
                 end else begin
                     ret_str_flg <= 0;
                     ret_jal_reset <= 0;
@@ -120,7 +127,7 @@ module ROB(
                     ret_reg_rd <= Dest[head];
                     ret_reg_res <= Value[head];
                 end
-                if(pop_flg)begin
+                if(pop_flg || (optype[head] == `STR && mem_commit))begin
                     if(head == `ROB_SZ-1) head <= 1;
                     else head <= head+1;
                 end
@@ -153,7 +160,8 @@ module ROB(
             end
 
             if(run_upd_str)begin
-                Ready[str_rd] <= 1;
+                if(Ready[str_rd] == 0)
+                    Ready[str_rd] <= 1;
             end
             
 

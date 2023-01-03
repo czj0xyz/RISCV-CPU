@@ -90,11 +90,13 @@ module cpu(
 	wire[`ROB_SZ_LOG:0] reg_rob_rs1_id,reg_rob_rs2_id;
 	wire rob_reg_rs1_ready,rob_reg_rs2_ready;
 	wire[31:0] rob_reg_rs1_value,rob_reg_rs2_value;
-	
+	wire mem_lsb_commit_flg;
+
 	MemCtl memctl(
 		.clk(clk_in),
 		.rst(rst_in),
 		.rdy(rdy_in),
+		.io_buffer_full(io_buffer_full),
 
 		.lsb_in_flg(lsb_mem_in_flg),
 		.lsb_out_flg(lsb_mem_out_flg),
@@ -113,7 +115,8 @@ module cpu(
 
 		.ret_lsb_in_flg(mem_lsb_flg),
 		.ret_inst_in_flg(mem_IF_flg),
-		.ret_res(mem_res)
+		.ret_res(mem_res),
+		.ret_str_commit(mem_lsb_commit_flg)
 	);
 
 	ALU alu(
@@ -265,6 +268,7 @@ module cpu(
 
   		.run_upd_str(lsb_str_done),
   		.str_rd(lsb_rd),
+		.mem_commit(mem_lsb_commit_flg),
 
   		.reset(ROB_jal_reset),
 
@@ -317,6 +321,7 @@ module cpu(
     	.mem_res(mem_res),
 
     	.str_modi(ROB_com_str_flg),
+		.rob_head(ROB_head),
 
 		.reset(ROB_jal_reset),
 
