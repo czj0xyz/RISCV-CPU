@@ -60,6 +60,8 @@ module RS(
         //find calc & reset
         full = 1;
         cal_flg = 0;
+        ins_pl = 0;
+        cal_pl = 0;
         for(i = 0;i < `RS_SZ; i = i + 1)
             if(Busy[i]==0)begin
                 full = 0;

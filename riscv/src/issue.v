@@ -33,6 +33,10 @@ module issue(
             rs1 = ins[19:15];
             rs2 = ins[24:20];
             rd = ins[11:7];
+            imm = 0;
+            opcode = 0;
+            optype = 0;
+            ret_pc = 0;
 
             rs1_hv = 1;
             rs2_hv = 1;

@@ -21,7 +21,7 @@ module cpu(
   output wire [31:0]          mem_a,			// address bus (only 17:0 is used)
   output wire                 mem_wr,			// write/read signal (1 for write)
 	
-	input  wire                 io_buffer_full, // 1 if uart buffer is full
+	input  wire                 io_buffer_full,  // 1 if uart buffer is full
 	
 	output wire [31:0]			dbgreg_dout		// cpu register output (debugging demo)
 );
@@ -37,7 +37,8 @@ module cpu(
 // - 0x30000 write: write a byte to output (write 0x00 is ignored)
 // - 0x30004 read: read clocks passed since cpu starts (in dword, 4 bytes)
 // - 0x30004 write: indicates program stop (will output '\0' through uart tx)
-
+    
+    assign dbgreg_dout = 0;
 
 	wire lsb_mem_in_flg;
 	wire lsb_mem_out_flg;
@@ -91,6 +92,7 @@ module cpu(
 	wire rob_reg_rs1_ready,rob_reg_rs2_ready;
 	wire[31:0] rob_reg_rs1_value,rob_reg_rs2_value;
 	wire mem_lsb_commit_flg;
+	wire[`ROB_SZ_LOG:0] rob_lsb_head;
 
 	MemCtl memctl(
 		.clk(clk_in),
@@ -291,7 +293,8 @@ module cpu(
   		.ret_jal_pc(ROB_jal_pc),
 
         .ret_head(ROB_head), 
-        .ret_tail(ROB_tail)
+        .ret_tail(ROB_tail),
+		.ret_lsb_head(rob_lsb_head)
 	);
 	
 	LSB lsb(
@@ -319,9 +322,10 @@ module cpu(
 
     	.mem_flg(mem_lsb_flg),
     	.mem_res(mem_res),
+		.mem_commit(mem_lsb_commit_flg),
 
     	.str_modi(ROB_com_str_flg),
-		.rob_head(ROB_head),
+		.rob_head(rob_lsb_head),
 
 		.reset(ROB_jal_reset),
 

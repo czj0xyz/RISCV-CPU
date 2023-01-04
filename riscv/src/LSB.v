@@ -32,10 +32,11 @@ module LSB(
     //for mem
     input  wire                  mem_flg,
     input  wire [31:0]           mem_res,
+    input  wire                  mem_commit,
 
     //update ROB
     input  wire                  str_modi,
-    input  wire[`ROB_SZ_LOG:0]  rob_head,
+    input  wire[`ROB_SZ_LOG:0]   rob_head,
 
     //branch
     input  wire                 reset,
@@ -84,6 +85,9 @@ module LSB(
             endcase
     end
 
+
+    wire[31:0] load_addr = imm[head] + Vj[head];
+
     always @(posedge clk)begin
         if(rst)begin
             head <= 1;
@@ -104,44 +108,59 @@ module LSB(
                 if(optype[head] == `STR)begin//store
                     ret_lad_flg <= 0;
                     mem_nd <= 0;
-                    if(Dest[head] == rob_head) begin
-                        if(str_modi)begin
-                            ret_str_done <= 0;
-                            mem_out <= 1;
-                            mem_st <= Vj[head] + imm[head];
-                            mem_len <= len;
-                            mem_x <= Vk[head];
-                            if(head == `LSB_SZ-1) head <=1;
-                            else head <= head+1;
-                        end else begin
-                            ret_str_done <= 1;
-                            ret_dest <= Dest[head];
-                            mem_out <= 0;
-                        end
+                    // if(Dest[head] == rob_head) begin
+                    if(str_modi)begin
+                        ret_str_done <= 0;
+                        mem_out <= 1;
+                        mem_st <= Vj[head] + imm[head];
+                        mem_len <= len;
+                        mem_x <= Vk[head];
+                        Dest[head] <= 0;
+                        // if(head == `LSB_SZ-1) head <=1;
+                        // else head <= head+1;
+                    end else if(Dest[head])begin
+                        ret_str_done <= 1;
+                        ret_dest <= Dest[head];
+                        mem_out <= 0;
                     end else begin
                         ret_str_done <= 0;
                         mem_out <= 0;
                     end
 
+                    if(~Dest[head] && mem_commit)begin
+                        if(head == `LSB_SZ-1) head <=1;
+                        else head <= head+1;
+                    end
+                    
+                    // end else begin
+                    //     ret_str_done <= 0;
+                    //     mem_out <= 0;
+                    // end
+
                 end else begin//load
                     ret_str_done <= 0;
                     mem_out <= 0;
-                    if(mem_flg)begin
-                        ret_lad_flg <= 1;
-                        ret_dest <= Dest[head];
-                        if(opcode[head] == `LB)
-                            ret_lad_res <= {{16{mem_res[7]}},mem_res[7:0]};
-                        else if(opcode[head] == `LH)
-                            ret_lad_res <= {{16{mem_res[15]}},mem_res[15:0]};
-                        else ret_lad_res <= mem_res;
-                        mem_nd <= 0;
-                        if(head == `LSB_SZ-1) head <=1;
-                        else head <= head+1;
-                    end else begin
-                        mem_nd <= 1;
-                        mem_len <= len;
-                        mem_st <= imm[head] + Vj[head];
+                    if(load_addr[17:16] == 2'b11 && rob_head != Dest[head])begin
                         ret_lad_flg <= 0;
+                        mem_nd <= 0;
+                    end else begin
+                        if(mem_flg)begin
+                            ret_lad_flg <= 1;
+                            ret_dest <= Dest[head];
+                            if(opcode[head] == `LB)
+                                ret_lad_res <= {{16{mem_res[7]}},mem_res[7:0]};
+                            else if(opcode[head] == `LH)
+                                ret_lad_res <= {{16{mem_res[15]}},mem_res[15:0]};
+                            else ret_lad_res <= mem_res;
+                            mem_nd <= 0;
+                            if(head == `LSB_SZ-1) head <=1;
+                            else head <= head+1;
+                        end else begin
+                            mem_nd <= 1;
+                            mem_len <= len;
+                            mem_st <= load_addr;
+                            ret_lad_flg <= 0;
+                        end
                     end
                 end
             end else begin

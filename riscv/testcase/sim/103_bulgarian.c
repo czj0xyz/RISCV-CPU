@@ -93,6 +93,16 @@ void move() {
     now++;
 }
 int main() {
+    // for(int i=1;i<=100;i++){
+    //     outl(i);
+    //     print(" ");
+    //     for(int j=1;j<=10;j++){
+    //         outl(100);
+    //         print(" ");
+    //         // sleep(10); // to prevent UART buffer from overflowing
+    //     }
+    //     print("\n");
+    // }
     int i = 0;
 	int temp = 0;
 	int count = 0;

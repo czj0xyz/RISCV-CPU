@@ -217,6 +217,26 @@ always @*
       end
   end
 
+  // reg[31:0] cnt = 0;
+  always @(posedge clk)begin
+    // cnt <= cnt + 1;
+      if (~q_io_en & io_en) begin
+      if (io_wr) begin
+        case (io_sel)
+          3'h00: begin      // 0x30000 write: output byte
+            $write("%c", io_din);
+          end
+          // 3'h04: begin      // 0x30004 write: indicates program stop
+          //   $display("IO:Return");
+          //   $finish;
+          // end
+        endcase
+      end
+    end
+  end
+
+
+
 always @*
   begin
     // Setup default FF updates.
@@ -241,6 +261,7 @@ always @*
     if (parity_err)
       d_err_code[DBG_UART_PARITY_ERR] = 1'b1;
 
+    // $display(cnt);
     if (~q_io_en & io_en) begin
       if (io_wr) begin
         case (io_sel)
@@ -249,7 +270,7 @@ always @*
               d_tx_data = io_din;
               d_wr_en   = 1'b1;
             end
-            $write("%c", io_din);
+            // $write("%c", io_din);
           end
           3'h04: begin      // 0x30004 write: indicates program stop
             if (!tx_full) begin
@@ -263,6 +284,7 @@ always @*
           end
         endcase
       end else begin
+        // $display("%d----%d----%d",io_en,io_wr,cnt);
         case (io_sel)
           3'h00: begin      // 0x30000 read: read byte from input buffer
             if (!io_in_empty) begin

@@ -4,12 +4,12 @@
 
 
 // optype
-`define CAL 3'd0
-`define CALi 3'd1
-`define STR 3'd2
-`define LAD 3'd3
-`define BRA 3'd4
-`define JUM 3'd5
+`define CAL  4'd0
+`define CALi 4'd1
+`define STR  4'd2
+`define LAD  4'd3
+`define BRA  4'd4
+`define JUM  4'd5
 
 // opcode
 `define ADD  4'b0000

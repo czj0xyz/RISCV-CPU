@@ -56,7 +56,8 @@ module ROB(
     output reg[31:0]               ret_jal_pc,
 
     output reg[`ROB_SZ_LOG:0]      ret_head,  
-    output reg[`ROB_SZ_LOG:0]      ret_tail
+    output reg[`ROB_SZ_LOG:0]      ret_tail,
+    output wire[`ROB_SZ_LOG:0]     ret_lsb_head
 );
     reg[31:0] Value[`ROB_SZ-1:0],Value2[`ROB_SZ-1:0];
     reg[3:0] opcode[`ROB_SZ-1:0],optype[`ROB_SZ-1:0];
@@ -68,6 +69,7 @@ module ROB(
     assign rs2_ready = Ready[rs2_id];
     assign rs1_value = Value[rs1_id];
     assign rs2_value = Value[rs2_id];    
+    assign ret_lsb_head = head;
 
     wire [1:0]tmp1 = Ready[head];
     wire [3:0]tmp2 = optype[head];
@@ -160,7 +162,7 @@ module ROB(
             end
 
             if(run_upd_str)begin
-                if(Ready[str_rd] == 0)
+                if(Ready[str_rd] != 1&&Ready[str_rd] != 2)
                     Ready[str_rd] <= 1;
             end
             

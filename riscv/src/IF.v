@@ -39,12 +39,14 @@ module IF(
     always @(*)begin
         if(rst||jal_reset)begin
             hv_ins = 0;
+            ins = 0;
         end else if(flg_get) begin
             hv_ins = 1;
             ins = ins_in;
         end else if(iss_flg)begin
             hv_ins = 0;
-        end
+            ins = 0;
+        end 
         
         if(hv_ins) begin
             nd_ins = `LOW;

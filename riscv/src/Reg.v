@@ -43,19 +43,25 @@ module Reg(
     output wire[`ROB_SZ_LOG:0]   rs1_id,
     output wire[`ROB_SZ_LOG:0]   rs2_id
 );
-    reg Busy[`REG_SZ-1:0];
+    // reg Busy[`REG_SZ-1:0];
     reg[`ROB_SZ_LOG:0] Reordered[`REG_SZ-1:0];
     reg[31:0] data[`REG_SZ-1:0];
 
     assign rs1_id = Reordered[rs1];
     assign rs2_id = Reordered[rs2];
     
+    integer i;
+    
+     initial begin
+         for(i = 0;i<`REG_SZ;i = i + 1)begin
+             data[i] = 0;
+             Reordered[i] = 0;
+         end
+     end
+    
     // reg[31:0] pre_data[`REG_SZ-1:0];
     // reg flg_out;
     // reg[31:0] debug_ret;
-
-
-    integer i;
     // integer fd;
     // initial begin
     //     fd = $fopen("DEBUG.out", "w+"); 
@@ -72,11 +78,14 @@ module Reg(
 
         if(run_add)begin
             if(rs1_hv)begin
-                if(Busy[rs1])begin
+                if(Reordered[rs1])begin
                     if(rob_rs1_ready)begin
                         Qj = 0;
                         Vj = rob_rs1_value;
-                    end else Qj = Reordered[rs1];
+                    end else begin 
+                        Qj = Reordered[rs1];
+                        Vj = 0;
+                    end
                 end else begin
                     Vj = data[rs1];
                     Qj = 0;
@@ -87,11 +96,14 @@ module Reg(
             end
             
             if(rs2_hv)begin
-                if(Busy[rs2])begin
+                if(Reordered[rs2])begin
                     if(rob_rs2_ready)begin
                         Qk = 0;
                         Vk = rob_rs2_value;
-                    end else Qk = Reordered[rs2];
+                    end else begin 
+                        Qk = Reordered[rs2];
+                        Vk = 0;
+                    end 
                 end else begin
                     Vk = data[rs2];
                     Qk = 0;
@@ -115,15 +127,15 @@ module Reg(
         //     debug_ret = 0;
         //     for( i=0;i<`REG_SZ;i++)
         //         if(data[i] != 0)
-        //             // debug_ret ^=  data[i];
-        //             $fwrite(fd,"%d-%h",i,data[i]);
-        //     // $fdisplay(fd,"%h",debug_ret);
-        //     $fdisplay(fd,"");
+        //             debug_ret ^=  data[i];
+        //             // $fwrite(fd,"%d-%h",i,data[i]);
+        //     $fdisplay(fd,"%h",debug_ret);
+        //     // $fdisplay(fd,"");
         // end
 
         if(rst)begin
             for( i=0;i<`REG_SZ;i = i + 1)begin
-                Busy[i] <= 0;
+                // Busy[i] <= 0;
                 Reordered[i] <= 0;
                 data[i] <= 0;
             end
@@ -131,7 +143,7 @@ module Reg(
         else if(~rdy);
         else if(reset)begin
             for( i=0;i<`REG_SZ;i = i + 1)begin
-                Busy[i] <= 0;
+                // Busy[i] <= 0;
                 Reordered[i] <= 0;
             end
         end else begin
@@ -145,13 +157,13 @@ module Reg(
             end else begin
                 if(run_upd)begin
                     if(Reordered[commit_rd] == head)begin
-                        Busy[commit_rd] <= 0;
+                        // Busy[commit_rd] <= 0;
                         Reordered[commit_rd] <= 0;
                     end
                     if(commit_rd != 0)data[commit_rd] <= res;
                 end
                 if(run_add && rd_hv && rd != 0) begin
-                    Busy[rd] <= 1;
+                    // Busy[rd] <= 1;
                     Reordered[rd] <= tail;
                 end
             end
