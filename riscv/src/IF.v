@@ -22,8 +22,8 @@ module IF(
     input  wire[31:0]           jal_pc,
 
     //for mem
-    output  reg                 nd_ins,
-    output  reg [31:0]          pc_fetch,
+    output  wire                nd_ins,
+    output  wire[31:0]          pc_fetch,
 
     //for core
     output  reg                 ins_flg,
@@ -33,55 +33,31 @@ module IF(
     
 );
     reg [31:0] pc = 0;
-    reg hv_ins = 0, iss_flg = 0;
-    reg [31:0] ins = 0;
 
-    always @(*)begin
-        if(rst||jal_reset)begin
-            hv_ins = 0;
-            ins = 0;
-        end else if(flg_get) begin
-            hv_ins = 1;
-            ins = ins_in;
-        end else if(iss_flg)begin
-            hv_ins = 0;
-            ins = 0;
-        end 
-        
-        if(hv_ins) begin
-            nd_ins = `LOW;
-            pc_fetch = 32'h0;
-        end else begin
-            nd_ins = `HIGH;
-            pc_fetch = pc;
-        end
-    end
+    assign nd_ins = (~rst) & (rdy) & (~jal_reset) & (~flg_get);
+    assign pc_fetch = pc;
+
 
     always @(posedge clk) begin
         if(rst)begin
             pc <= 0;
-            iss_flg <= 0;
-        end
-        else if(~rdy);
+            ins_flg <= 0;
+        end else if(~rdy);
         else if(jal_reset)begin
             pc <= jal_pc;
-//            hv_ins <= 0;
-            ins_flg <= `LOW;
-            iss_flg <= 0;
-        end else if(stall || ~hv_ins)begin
-            ins_flg <= `LOW;
-            iss_flg <= 0;
+            ins_flg <= 0;
+        end else if(stall || !flg_get)begin
+            ins_flg <= 0;
         end else begin
-            ins_flg <= `HIGH;
-            iss_flg <= 1;
-            // hv_ins <= 0;
-            ret_ins <= ins;
-            
-            if(ins[6:0] == 7'b1101111)
-                pc <= pc+{{11{ins[31]}},ins[31],ins[19:12],ins[20],ins[30:21],1'b0};
-            else pc <= pc + 4;
 
+            ret_ins <= ins_in;
             ret_pc <= pc;
+            ins_flg <= 1;
+            
+            if(ins_in[6:0] == 7'b1101111)
+                pc <= pc+{{11{ins_in[31]}},ins_in[31],ins_in[19:12],ins_in[20],ins_in[30:21],1'b0};
+            else pc <= pc + 4;
+            
         end
         
     end

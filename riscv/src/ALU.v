@@ -22,6 +22,8 @@ module ALU(
     assign rd_to = rd_fr;
     always @(*)begin
         if(run_flg)begin
+            res = 0;
+            res2 = 0;
             if(optype == `CAL)
             case(opcode)
                 `ADD : res = Vj + Vk;
@@ -34,7 +36,7 @@ module ALU(
                 `SRA : res = $signed(Vj) >> (Vk[4:0]);
                 `OR  : res = Vj | Vk;
                 `AND : res = Vj & Vk;
-                default: res = 0;
+                default:;
             endcase
             
             if(optype == `CALi)
@@ -50,7 +52,7 @@ module ALU(
                 `SRAI : res = $signed(Vj) >> imm;
                 `AUIPC: res = imm + pc;
                 `LUI  : res = imm;
-                default: res = 0;
+                default:;
             endcase
 
             if(optype == `BRA)
@@ -79,10 +81,7 @@ module ALU(
                     res2 = Vj >= Vk;
                     res = imm + pc;
                 end
-                default:begin
-                    res2 = 0;
-                    res = 0;
-                end
+                default:;
             endcase
 
             if(optype == `JUM)
@@ -92,12 +91,11 @@ module ALU(
                     res2 = (Vj + imm)&(~(32'h00000001)); 
                     res = pc + 4;
                 end
-                default:begin
-                    res2 = 0;
-                    res = 0;
-                end
+                default:;
             endcase
-            
+        end else begin
+            res = 0;
+            res2 = 0;
         end
     end
 endmodule

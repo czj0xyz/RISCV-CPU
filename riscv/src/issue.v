@@ -28,8 +28,19 @@ module issue(
     assign ret_add = ins_flg;
 
     always @(*) begin
-        if(~ins_flg);
-        else begin
+        if(~ins_flg)begin
+            rs1 = 0;
+            rs2 = 0;
+            rd = 0;
+            imm = 0;
+            opcode = 0;
+            optype = 0;
+            ret_pc = 0;
+
+            rs1_hv = 0;
+            rs2_hv = 0;
+            rd_hv = 0;
+        end else begin
             rs1 = ins[19:15];
             rs2 = ins[24:20];
             rd = ins[11:7];

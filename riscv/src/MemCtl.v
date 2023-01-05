@@ -28,7 +28,7 @@ module MemCtl(
     output reg                  mem_wr_,		// write/read signal (1 for write)
  
     output reg                  ret_lsb_in_flg,
-    output reg                  ret_inst_in_flg,
+    output reg                  ret_inst_in_flg = 0,
     output reg[31:0]            ret_res,
     output reg                  ret_str_commit
 
@@ -40,11 +40,11 @@ module MemCtl(
     reg lsb_in = 0;
     reg inst_in = 0;
 
-    reg[3:0] get_len = 0;
-    reg[7:0] data[3:0];
+    reg[3:0] get_len = 0, lsb_len_byte = 0;
+    reg[7:0] data[2:0];
     reg[2:0] lsb_hv_wt = 0;
 
-    reg[31:0] ans = 0;
+    // reg[31:0] ans = 0;
     integer i;
 
     reg valid[`ICACHE_SZ-1:0];
@@ -85,6 +85,8 @@ module MemCtl(
                 end else if(inst_in_flg)begin
                     if(!inst_in)mem_a_ = inst_addr;
                     else mem_a_ = inst_addr + get_len + 1;
+                end else begin
+                    mem_a_ = 0;
                 end
             end 
         end else begin
@@ -93,12 +95,12 @@ module MemCtl(
             mem_wr_ = 0;
         end
 
-        data[get_len] = mem_din_;
+        // data[get_len] = mem_din_;
 //        for(i=get_len+1;i<4;i = i+1)data[i] = 8'h00;
-        if(get_len <= 0) data[1] = 8'h00;
-        if(get_len <= 1) data[2] = 8'h00;
-        if(get_len <= 2) data[3] = 8'h00;
-        ans = {data[3],data[2],data[1],data[0]};
+        // if(get_len <= 0) data[1] = 8'h00;
+        // if(get_len <= 1) data[2] = 8'h00;
+        // if(get_len <= 2) data[3] = 8'h00;
+        // ans = {data[3],data[2],data[1],data[0]};
     end
 
     always @(posedge clk)begin
@@ -156,11 +158,23 @@ module MemCtl(
                         get_len <= 0;
                         ret_lsb_in_flg <= 0;
                         lsb_in <= 1;
+                        case(lsb_len)
+                            6'd8: lsb_len_byte <= 1;
+                            6'd16: lsb_len_byte <= 2;
+                            6'd24: lsb_len_byte <= 3;
+                            default: lsb_len_byte <= 4;
+                        endcase
                     end else begin
-                        if(get_len*8+8 == lsb_len)begin
+                        if(get_len+1 == lsb_len_byte)begin
                             ret_lsb_in_flg <= 1;
                             lsb_in <= 0;
-                            ret_res <= ans;
+                            case(lsb_len)
+                                6'd8: ret_res <= {24'h000000,mem_din_};
+                                6'd16: ret_res <= {12'h0000,mem_din_,data[0]};
+                                6'd24: ret_res <= {6'h00,mem_din_,data[1],data[0]};
+                                default: ret_res <= {mem_din_,data[2],data[1],data[0]};
+                            endcase
+                            // ret_res <= ans;
                         end else begin
                             ret_lsb_in_flg <= 0;
                             data[get_len] <= mem_din_;
@@ -185,11 +199,12 @@ module MemCtl(
                             if(get_len == 3)begin
                                 valid[inst_addr[`iIndex]] <= 1;
                                 tag[inst_addr[`iIndex]] <= inst_addr[`iTag];
-                                icache_data[inst_addr[`iIndex]] <= ans;
+                                icache_data[inst_addr[`iIndex]] <= {mem_din_,data[2],data[1],data[0]};
                                 
                                 ret_inst_in_flg <= 1;
                                 inst_in <= 0;
-                                ret_res <= ans;
+                                ret_res <= {mem_din_,data[2],data[1],data[0]};
+                                // ret_res <= ans;
                             end else begin
                                 ret_inst_in_flg <= 0;
                                 data[get_len] <= mem_din_;
@@ -200,6 +215,8 @@ module MemCtl(
                 end else begin
                     ret_lsb_in_flg <= 0;
                     ret_inst_in_flg <= 0;
+                    inst_in <= 0;
+                    lsb_in <= 0;
                 end
             end
         end

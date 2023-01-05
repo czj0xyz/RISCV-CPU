@@ -58,11 +58,11 @@ module LSB(
     reg[31:0]          Vj[`LSB_SZ-1:0],Vk[`LSB_SZ-1:0],imm[`LSB_SZ-1:0];
     reg[3:0]           opcode[`LSB_SZ-1:0],optype[`LSB_SZ-1:0];
     reg                Busy[`LSB_SZ-1:0];
-    reg[`LSB_SZ-1:0] tail = 1,head = 1;
+    reg[`LSB_SZ_LOG:0] tail = 1,head = 1;
     integer i;
     assign ret_full = (tail==`ROB_SZ-1&&head==1) || (tail+1 == head);
 
-    reg[5:0] len;
+    reg[5:0] len = 0;
 
     always @(*)begin
         len = 0;
@@ -84,7 +84,6 @@ module LSB(
                 default:;
             endcase
     end
-
 
     wire[31:0] load_addr = imm[head] + Vj[head];
 
@@ -127,15 +126,10 @@ module LSB(
                         mem_out <= 0;
                     end
 
-                    if(~Dest[head] && mem_commit)begin
+                     if(~Dest[head] && mem_commit)begin
                         if(head == `LSB_SZ-1) head <=1;
                         else head <= head+1;
-                    end
-                    
-                    // end else begin
-                    //     ret_str_done <= 0;
-                    //     mem_out <= 0;
-                    // end
+                     end
 
                 end else begin//load
                     ret_str_done <= 0;
