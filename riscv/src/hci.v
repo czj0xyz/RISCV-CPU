@@ -217,9 +217,7 @@ always @*
       end
   end
 
-  // reg[31:0] cnt = 0;
   always @(posedge clk)begin
-    // cnt <= cnt + 1;
       if (~q_io_en & io_en) begin
       if (io_wr) begin
         case (io_sel)
@@ -261,7 +259,6 @@ always @*
     if (parity_err)
       d_err_code[DBG_UART_PARITY_ERR] = 1'b1;
 
-    // $display(cnt);
     if (~q_io_en & io_en) begin
       if (io_wr) begin
         case (io_sel)
@@ -284,7 +281,6 @@ always @*
           end
         endcase
       end else begin
-        // $display("%d----%d----%d",io_en,io_wr,cnt);
         case (io_sel)
           3'h00: begin      // 0x30000 read: read byte from input buffer
             if (!io_in_empty) begin

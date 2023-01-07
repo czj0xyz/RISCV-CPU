@@ -107,7 +107,6 @@ module LSB(
                 if(optype[head] == `STR)begin//store
                     ret_lad_flg <= 0;
                     mem_nd <= 0;
-                    // if(Dest[head] == rob_head) begin
                     if(str_modi)begin
                         ret_str_done <= 0;
                         mem_out <= 1;
@@ -115,8 +114,6 @@ module LSB(
                         mem_len <= len;
                         mem_x <= Vk[head];
                         Dest[head] <= 0;
-                        // if(head == `LSB_SZ-1) head <=1;
-                        // else head <= head+1;
                     end else if(Dest[head])begin
                         ret_str_done <= 1;
                         ret_dest <= Dest[head];
@@ -126,10 +123,10 @@ module LSB(
                         mem_out <= 0;
                     end
 
-                     if(~Dest[head] && mem_commit)begin
-                        if(head == `LSB_SZ-1) head <=1;
-                        else head <= head+1;
-                     end
+                    if(~Dest[head] && mem_commit)begin
+                       if(head == `LSB_SZ-1) head <=1;
+                       else head <= head+1;
+                    end
 
                 end else begin//load
                     ret_str_done <= 0;
@@ -166,7 +163,6 @@ module LSB(
 
             //update
             if(run_upd_lad)begin
-                // for(i=head; i!=tail ;i = i==`ROB_SZ-1?1:i+1)begin
                 for(i = 0; i < `LSB_SZ ; i = i + 1)begin
                     if(Qj[i] == lad_rd)begin
                         Qj[i] <= 0;
@@ -180,7 +176,6 @@ module LSB(
             end
 
             if(run_upd_alu)begin
-                // for(i=head; i!=tail ;i = i==`ROB_SZ-1?1:i+1)begin
                 for(i = 0; i < `LSB_SZ ; i = i + 1)begin
                     if(Qj[i] == alu_rd)begin
                         Qj[i] <= 0;

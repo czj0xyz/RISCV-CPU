@@ -43,7 +43,6 @@ module Reg(
     output wire[`ROB_SZ_LOG:0]   rs1_id,
     output wire[`ROB_SZ_LOG:0]   rs2_id
 );
-    // reg Busy[`REG_SZ-1:0];
     reg[`ROB_SZ_LOG:0] Reordered[`REG_SZ-1:0];
     reg[31:0] data[`REG_SZ-1:0];
 
@@ -66,10 +65,6 @@ module Reg(
     // initial begin
     //     fd = $fopen("DEBUG.out", "w+"); 
     // end
-    
-    // wire[31:0] tmp1 = data[15];
-    // wire[`ROB_SZ_LOG:0] tmp2 = Reordered[15];
-    // wire tmp3 = Busy[15];
 
     always @(*)begin
         // flg_out = 0;
@@ -135,7 +130,6 @@ module Reg(
 
         if(rst)begin
             for( i=0;i<`REG_SZ;i = i + 1)begin
-                // Busy[i] <= 0;
                 Reordered[i] <= 0;
                 data[i] <= 0;
             end
@@ -143,7 +137,6 @@ module Reg(
         else if(~rdy);
         else if(reset)begin
             for( i=0;i<`REG_SZ;i = i + 1)begin
-                // Busy[i] <= 0;
                 Reordered[i] <= 0;
             end
         end else begin
@@ -157,13 +150,11 @@ module Reg(
             end else begin
                 if(run_upd)begin
                     if(Reordered[commit_rd] == head)begin
-                        // Busy[commit_rd] <= 0;
                         Reordered[commit_rd] <= 0;
                     end
                     if(commit_rd != 0)data[commit_rd] <= res;
                 end
                 if(run_add && rd_hv && rd != 0) begin
-                    // Busy[rd] <= 1;
                     Reordered[rd] <= tail;
                 end
             end

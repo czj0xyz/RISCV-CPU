@@ -44,7 +44,6 @@ module MemCtl(
     reg[7:0] data[2:0];
     reg[2:0] lsb_hv_wt = 0;
 
-    // reg[31:0] ans = 0;
     integer i;
 
     reg valid[`ICACHE_SZ-1:0];
@@ -95,25 +94,16 @@ module MemCtl(
             mem_wr_ = 0;
         end
 
-        // data[get_len] = mem_din_;
-//        for(i=get_len+1;i<4;i = i+1)data[i] = 8'h00;
-        // if(get_len <= 0) data[1] = 8'h00;
-        // if(get_len <= 1) data[2] = 8'h00;
-        // if(get_len <= 2) data[3] = 8'h00;
-        // ans = {data[3],data[2],data[1],data[0]};
     end
 
     always @(posedge clk)begin
-        // stall_out <= ~stall_out;
         if(rst)begin
             lsb_out_len <= 0;
             for(i=0;i<`ICACHE_SZ;i = i + 1) valid[i] <= 0;
         end else if(~rdy);
         else if(reset)begin
-            // lsb_out_len <= 0;
             lsb_in <= 0;
             inst_in <= 0;
-//            get_len <= 0;
             ret_lsb_in_flg <= 0;
             ret_inst_in_flg <= 0;
             ret_str_commit <= 0;
@@ -150,7 +140,6 @@ module MemCtl(
                 end else ret_str_commit <= 0;
             end else begin
                 ret_str_commit <= 0;
-//                mem_wr_ <= 0;
                 if(lsb_in_flg)begin
                     ret_inst_in_flg <= 0;
                     inst_in <= 0;
@@ -174,7 +163,6 @@ module MemCtl(
                                 6'd24: ret_res <= {6'h00,mem_din_,data[1],data[0]};
                                 default: ret_res <= {mem_din_,data[2],data[1],data[0]};
                             endcase
-                            // ret_res <= ans;
                         end else begin
                             ret_lsb_in_flg <= 0;
                             data[get_len] <= mem_din_;
@@ -204,7 +192,6 @@ module MemCtl(
                                 ret_inst_in_flg <= 1;
                                 inst_in <= 0;
                                 ret_res <= {mem_din_,data[2],data[1],data[0]};
-                                // ret_res <= ans;
                             end else begin
                                 ret_inst_in_flg <= 0;
                                 data[get_len] <= mem_din_;
